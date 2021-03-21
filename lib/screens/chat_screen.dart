@@ -68,6 +68,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      maxLines: null,
                       controller: messageTextController,
                       onChanged: (value) {
                         messageText = value;
@@ -75,12 +76,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
-                  FlatButton(
+                  TextButton(
                     onPressed: () {
                       messageTextController.clear();
                       _firestore.collection('messages').add({
                         'text': messageText,
                         'sender': loggedInUser.email,
+                        'Timestamp': FieldValue.serverTimestamp(),
+                        //DateTime.now().toUtc().millisecondsSinceEpoch,
                       });
                     },
                     child: Text(
@@ -102,7 +105,10 @@ class MessageStream extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('messages').snapshots(),
+        stream: _firestore
+            .collection('messages')
+            .orderBy('Timestamp', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
@@ -115,7 +121,7 @@ class MessageStream extends StatelessWidget {
             );
           }
           final messages = snapshot.data.docs;
-          List<MessageBubbles> WidgetMessages = [];
+          List<MessageBubbles> widgetMessages = [];
           for (var message in messages) {
             final messageText = message['text'];
             final messageSender = message['sender'];
@@ -128,13 +134,13 @@ class MessageStream extends StatelessWidget {
               text: messageText,
               isMe: currentUser == messageSender,
             );
-            WidgetMessages.add(messageBubbles);
+            widgetMessages.add(messageBubbles);
           }
           return Expanded(
             child: ListView(
               reverse: true,
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-              children: WidgetMessages,
+              children: widgetMessages,
             ),
           );
         });
@@ -184,6 +190,5 @@ class MessageBubbles extends StatelessWidget {
         )
       ],
     );
-    ;
   }
 }

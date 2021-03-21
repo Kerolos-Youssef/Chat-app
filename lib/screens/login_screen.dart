@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
               RoundedButton(
                 text: 'Log In',
                 color: Colors.lightBlueAccent,
-                OnPressed: () async {
+                onPressed: () async {
                   setState(() {
                     showSpinner = true;
                   });
